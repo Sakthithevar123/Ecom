@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmallKart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add favicon links -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+</head>
+<body>
+    <div class="container">
+        <!-- Authentication Section -->
+        <div id="auth-section" class="mt-5">
+            <h2 class="text-center">Welcome to SmallKart</h2>
+            <div class="d-flex justify-content-center mt-3">
+                <button id="google-login-btn" class="btn btn-primary">Login with Google</button>
+            </div>
+            <div id="login-loading" class="text-center mt-3 hidden">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer View -->
+        <div id="customer-view" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Products</h2>
+                <button id="logout-customer" class="btn btn-danger">Logout</button>
+            </div>
+            <div id="coin-balance" class="alert alert-info mt-3"></div>
+            <div class="category-filter mb-3">
+                <select id="category-filter" class="form-control">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+            <div class="row products"></div>
+            <div class="pagination-controls d-flex justify-content-center mt-4 mb-4">
+                <button id="prev-page" class="btn btn-secondary me-2">&laquo; Previous</button>
+                <div id="page-info" class="align-self-center mx-3">Page 1 of 1</div>
+                <button id="next-page" class="btn btn-secondary ms-2">Next &raquo;</button>
+            </div>
+            <h3 class="mt-5">Cart</h3>
+            <ul class="list-group cart-items mb-3"></ul>
+            <p>Total: $<span id="cart-total">0.00</span></p>
+            <!-- In-page credit input form -->
+            <div id="credit-input-section" class="mb-3">
+                <label for="credits-to-use" class="form-label">Use Credits (1 Credit = $1000, Max will be shown):</label>
+                <div class="input-group">
+                    <input type="number" id="credits-to-use" class="form-control" min="0" placeholder="Enter credits to use">
+                    <button id="apply-credits" class="btn btn-primary">Apply</button>
+                </div>
+                <p id="credits-error" class="text-danger"></p>
+            </div>
+            <button id="complete-payment" class="btn btn-success mb-5">Complete Payment</button>
+            <h3>Order History</h3>
+            <div class="row" id="order-history"></div>
+           
+        </div>
+
+        <!-- Bill Section -->
+        <div id="bill-section" class="hidden mt-5">
+            <h2>Receipt</h2>
+            <div id="bill-content" class="mb-3"></div>
+         <!--   <button id="download-bill" class="btn btn-primary me-2">Download Bill</button>-->
+            <button id="print-bill" class="btn btn-secondary">Print Bill</button>
+        </div>
+
+        <!-- Admin View -->
+        <div id="admin-view" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Admin Dashboard</h2>
+                <button id="logout-admin" class="btn btn-danger">Logout</button>
+            </div>
+            <h3>Add New Product</h3>
+            <form id="add-product-form" class="mb-4">
+                <div class="mb-3">
+                    <input type="text" id="new-name" class="form-control" placeholder="Product Name" required>
+                </div>
+                <div class="mb-3">
+                    <input type="number" id="new-price" class="form-control" placeholder="Price" required step="0.01" min="0">
+                </div>
+                <div class="mb-3">
+                    <input type="number" id="new-stock" class="form-control" placeholder="Stock" required min="0">
+                </div>
+                <div class="mb-3">
+                    <input type="number" id="new-credits" class="form-control" placeholder="Credits Earned per Unit" required min="0">
+                </div>
+                <div class="mb-3">
+                    <label for="new-category" class="form-label">Category</label>
+                    <select id="new-category" class="form-control">
+                        <option value="">Select Category (Optional)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="new-asset-file" class="form-label">Product Image (PNG/JPG)</label>
+                    <input type="file" id="new-asset-file" class="form-control" accept="image/png, image/jpeg">
+                </div>
+                <button type="submit" class="btn btn-primary">Add Product</button>
+            </form>
+            <h3>Manage Products</h3>
+            <div class="row admin-products"></div>
+            <div class="admin-controls mb-4">
+                <h3>Reports Dashboard</h3>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <button type="button" class="modal-close" data-dismiss="modal">×</button>
+                </div>
+                <div class="modal-body">
+                    <p id="error-message"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" id="retry-btn" class="btn btn-primary">Retry</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div class="modal fade" id="reportsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reports Dashboard</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#top10orders">Top 10 Orders</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#top10products">Top Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#top10customers">Top Customers</a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3">
+                        <div class="tab-pane fade show active" id="top10orders">
+                            <div class="report-content"></div>
+                        </div>
+                        <div class="tab-pane fade" id="top10products">
+                            <div class="report-content"></div>
+                        </div>
+                        <div class="tab-pane fade" id="top10customers">
+                            <div class="report-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
