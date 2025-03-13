@@ -292,17 +292,62 @@ $(document).ready(function() {
                 } else if (role === 'admin') {
                     $('#admin-view').removeClass('hidden');
                     displayAdminProducts();
-                    // Add reports button and container
+                    
+                    // Create admin controls container
+                    const adminControls = $('<div>').addClass('admin-controls mb-4');
+                    
+                    // Reports button
                     const reportsBtn = $('<button>')
                         .attr('id', 'admin-reports')
-                        .addClass('btn btn-primary ms-2')
+                        .addClass('btn btn-primary me-2')
                         .text('Reports')
                         .click(() => {
-                            // Toggle reports visibility
                             $('#reports-container').toggle();
+                            $('#user-management-container').hide();
                             loadTop10Orders();
                         });
+
+                    // User Management button
+                    const userManageBtn = $('<button>')
+                        .attr('id', 'manage-users')
+                        .addClass('btn btn-primary')
+                        .text('Manage Users')
+                        .click(() => {
+                            $('#user-management-container').toggle();
+                            $('#reports-container').hide();
+                            loadUsers();
+                        });
                     
+                    adminControls.append(reportsBtn, userManageBtn);
+                    
+                    // Create user management container
+                    const userManagementContainer = $('<div>')
+                        .attr('id', 'user-management-container')
+                        .addClass('mt-3')
+                        .hide()
+                        .html(`
+                            <div class="card">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <h3 class="mb-0">User Management</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Email</th>
+                                                    <th>Current Role</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="users-table-body">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+
                     // Create reports container
                     const reportsContainer = $('<div>')
                         .attr('id', 'reports-container')
@@ -317,7 +362,7 @@ $(document).ready(function() {
                                     <a class="nav-link" data-bs-toggle="tab" href="#top10products">Top Products</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#top10customers">Top Customer</a>
+                                    <a class="nav-link" data-bs-toggle="tab" href="#top10customers">Top Customers</a>
                                 </li>
                             </ul>
                             <div class="tab-content">
@@ -333,8 +378,14 @@ $(document).ready(function() {
                             </div>
                         `);
                     
-                    $('.admin-controls').append(reportsBtn);
-                    $('.admin-controls').after(reportsContainer);
+                    // Add containers to admin view at the bottom
+                    $('#admin-view').append(
+                        $('<div>').addClass('admin-bottom-section mt-4').append(
+                            adminControls,
+                            userManagementContainer,
+                            reportsContainer
+                        )
+                    );
                     initializeReports();
                 } else {
                     throw new Error('Invalid role assigned.');
@@ -1503,6 +1554,129 @@ $(document).ready(function() {
 
     function loadCustomersReport() {
         // Implementation of loadCustomersReport function
+    }
+
+    // Add these new functions for user management
+    function loadUsers() {
+        const $tableBody = $('#users-table-body');
+        $tableBody.html('<tr><td colspan="3" class="text-center"><div class="spinner-border" role="status"></div></td></tr>');
+
+        // First verify admin status
+        const currentUserId = localStorage.getItem('userId');
+        if (!currentUserId) {
+            $tableBody.html('<tr><td colspan="3" class="text-danger">Authentication required</td></tr>');
+            return;
+        }
+
+        db.collection('users').doc(currentUserId).get()
+            .then(doc => {
+                if (!doc.exists || doc.data().role !== 'admin') {
+                    throw new Error('Unauthorized: Only admins can view user management');
+                }
+                return db.collection('users').get();
+            })
+            .then(snapshot => {
+                if (snapshot.empty) {
+                    $tableBody.html('<tr><td colspan="3" class="text-center">No users found</td></tr>');
+                    return;
+                }
+
+                $tableBody.empty();
+                snapshot.docs.forEach(doc => {
+                    const userData = doc.data();
+                    const userId = doc.id;
+                    
+                    const $row = $('<tr>');
+                    $row.append($('<td>').text(userData.email || 'No email'));
+                    
+                    const $roleCell = $('<td>');
+                    const $roleSelect = $('<select>')
+                        .addClass('form-select form-select-sm role-select')
+                        .attr('data-user-id', userId);
+                    
+                    $roleSelect.append(
+                        $('<option>').val('customer').text('Customer'),
+                        $('<option>').val('admin').text('Admin')
+                    );
+                    
+                    $roleSelect.val(userData.role || 'customer');
+                    $roleCell.append($roleSelect);
+                    
+                    const $actionsCell = $('<td>');
+                    const $saveBtn = $('<button>')
+                        .addClass('btn btn-primary btn-sm save-role me-2')
+                        .html('<i class="fas fa-save"></i> Save')
+                        .attr('data-user-id', userId)
+                        .prop('disabled', true);
+                    
+                    $actionsCell.append($saveBtn);
+                    
+                    $row.append($roleCell, $actionsCell);
+                    $tableBody.append($row);
+
+                    // Enable save button only when role is changed
+                    $roleSelect.on('change', function() {
+                        const $btn = $(this).closest('tr').find('.save-role');
+                        $btn.prop('disabled', false)
+                            .removeClass('btn-success')
+                            .addClass('btn-primary')
+                            .html('<i class="fas fa-save"></i> Save');
+                    });
+
+                    // Handle save button click
+                    $saveBtn.off('click').on('click', function() {
+                        const newRole = $(this).closest('tr').find('.role-select').val();
+                        updateUserRole(userId, newRole, $(this));
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error loading users:', error);
+                $tableBody.html(`<tr><td colspan="3" class="text-danger">${error.message || 'Error loading users'}</td></tr>`);
+            });
+    }
+
+    function updateUserRole(userId, newRole, $button) {
+        const originalText = $button.html();
+        $button.prop('disabled', true)
+               .html('<span class="spinner-border spinner-border-sm"></span> Saving...');
+        
+        // First check if current user is admin
+        const currentUserId = localStorage.getItem('userId');
+        if (!currentUserId) {
+            showError('You must be logged in to perform this action');
+            $button.prop('disabled', false).html(originalText);
+            return;
+        }
+
+        db.collection('users').doc(currentUserId).get()
+            .then(doc => {
+                if (!doc.exists || doc.data().role !== 'admin') {
+                    throw new Error('Unauthorized: Only admins can change user roles');
+                }
+                // Proceed with role update
+                return db.collection('users').doc(userId).update({
+                    role: newRole
+                });
+            })
+            .then(() => {
+                $button.html('<i class="fas fa-check"></i> Saved')
+                       .removeClass('btn-primary')
+                       .addClass('btn-success');
+                showAlert('User role updated successfully');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    $button.html(originalText)
+                           .prop('disabled', true);
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Error updating user role:', error);
+                showError(error.message || 'Failed to update user role');
+                $button.prop('disabled', false)
+                       .html(originalText);
+            });
     }
 });
 

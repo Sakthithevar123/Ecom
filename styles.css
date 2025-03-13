@@ -510,3 +510,143 @@
     white-space: nowrap;
 }
 
+/* Remove all user management styles */
+
+/* Add these styles for user management */
+#user-management-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#user-management-container .card-header {
+    padding: 15px 20px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+#user-management-container .card-header h3 {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+#user-management-container .card-body {
+    padding: 20px;
+}
+
+#user-management-container .table {
+    margin-bottom: 0;
+}
+
+#user-management-container .table th {
+    font-weight: 600;
+    border-top: none;
+    background-color: #f8f9fa;
+}
+
+#user-management-container .table td {
+    vertical-align: middle;
+    padding: 12px 15px;
+}
+
+#user-management-container .form-select {
+    width: auto;
+    min-width: 120px;
+    display: inline-block;
+}
+
+#user-management-container .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+#user-management-container .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+.role-select {
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.875rem;
+}
+
+.role-select:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.save-role {
+    transition: all 0.2s ease;
+}
+
+.save-role:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.save-role.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.save-role.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Make table responsive */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    #user-management-container .form-select {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    #user-management-container .btn-sm {
+        width: 100%;
+    }
+    
+    #user-management-container td {
+        padding: 15px 10px;
+    }
+}
+
+.admin-bottom-section {
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+    margin-top: 3rem;
+}
+
+.admin-bottom-section .admin-controls {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.admin-bottom-section .btn {
+    min-width: 120px;
+    margin: 0 10px;
+}
+
+#reports-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
